@@ -40,3 +40,8 @@ results are very bad, this is probably a producting place to start.
 
 Scans need to be in approximately MNI orientation - i.e RL PA IS (or
 LR PA IS). Angle isn't particulary critical.
+
+Usage:
+
+scalperWSMacaque --help
+

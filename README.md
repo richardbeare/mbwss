@@ -17,6 +17,9 @@ Building
 Prerequisites : cmake 2.8.7, git
 
 git clone https://github.com/richardbeare/mbwss.git
+cd mbwss
+git submodule init
+git submodule update
 
 mkdir BuildMBWSS
 cd BuildMBWSS

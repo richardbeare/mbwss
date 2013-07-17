@@ -1,4 +1,5 @@
 #include "itkBinaryImageToShapeLabelMapFilter.h"
+#include "itkLabelImageToShapeLabelMapFilter.h"
 #include "itkLabelMapToBinaryImageFilter.h"
 
 template <class RawImType>
@@ -20,7 +21,7 @@ void cropNeck(typename RawImType::Pointer raw, float distance, int &outtop, int 
   typename MaskImType::Pointer mask = discarder->GetOutput();
   mask->Update();
   mask->DisconnectPipeline();
-    
+
   // find the top
   typedef typename itk::BinaryImageToShapeLabelMapFilter<MaskImType> LabellerType;
   typename LabellerType::Pointer labeller = LabellerType::New();
@@ -61,7 +62,7 @@ void cropNeck(typename RawImType::Pointer raw, float distance, int &outtop, int 
     fillRegion<RawImType>(raw, blank, 0);
     fillRegion<MaskImType>(mask, blank, 0);
     }
-  else 
+  else
     {
     bottom = 0;
     }
@@ -80,7 +81,7 @@ void cropNeck(typename RawImType::Pointer raw, float distance, int &outtop, int 
   r->Update();
   r->DisconnectPipeline();
   raw=r;
-  
+
   writeImDbg<RawImType>(raw, "cropraw");
 
   outbottom=bottom;
@@ -110,7 +111,7 @@ void cropNeck2(typename RawImType::Pointer raw, float distance, float slice, int
   typename MaskImType::Pointer mask = discarder->GetOutput();
   mask->Update();
   mask->DisconnectPipeline();
-    
+
   // find the top
   typedef typename itk::BinaryImageToShapeLabelMapFilter<MaskImType> LabellerType;
   typename LabellerType::Pointer labeller = LabellerType::New();
@@ -151,7 +152,7 @@ void cropNeck2(typename RawImType::Pointer raw, float distance, float slice, int
     fillRegion<RawImType>(raw, blank, 0);
     fillRegion<MaskImType>(mask, blank, 0);
     }
-  else 
+  else
     {
     bottom = 0;
     }
@@ -161,6 +162,13 @@ void cropNeck2(typename RawImType::Pointer raw, float distance, float slice, int
 
   {
   // estimate the centroid using the top 15mm
+  typedef typename itk::LabelImageToShapeLabelMapFilter<MaskImType> LabellerTypeB;
+  typename LabellerTypeB::Pointer labellerB = LabellerTypeB::New();
+
+  typedef typename LabellerTypeB::OutputImageType LabelMapTypeB;
+  typedef typename LabellerTypeB::OutputImagePointer LabelMapPointerTypeB;
+  typedef typename LabelMapTypeB::LabelObjectType LabelObjectTypeB;
+
   typename MaskImType::RegionType blank = mask->GetLargestPossibleRegion();
   typename MaskImType::RegionType::SizeType s = blank.GetSize();
   s[2] = top - slice/sp[2];
@@ -168,14 +176,12 @@ void cropNeck2(typename RawImType::Pointer raw, float distance, float slice, int
 
   fillRegion<MaskImType>(mask, blank, 0);
   writeImDbg<MaskImType>(mask, "topmask");
-  labeller->SetInput(mask);
-  labeller->SetFullyConnected(true);
-  labeller->SetInputForegroundValue(1);
-  LabelMapPointerType labmap2 = labeller->GetOutput();
-  labmap2->Update();
-  labmap2->DisconnectPipeline();
-  LabelObjectType * labelObject2 = labmap2->GetLabelObject(1);
-  typename MaskImType::PointType cent = labelObject2->GetCentroid();
+  labellerB->SetInput(mask);
+  LabelMapPointerTypeB labmap = labellerB->GetOutput();
+  labmap->Update();
+  labmap->DisconnectPipeline();
+  LabelObjectTypeB * labelObject = labmap->GetLabelObject(1);
+  typename MaskImType::PointType cent = labelObject->GetCentroid();
   typename MaskImType::IndexType ind;
   mask->TransformPhysicalPointToIndex(cent, ind);
   x=ind[0];

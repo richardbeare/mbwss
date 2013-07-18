@@ -510,9 +510,6 @@ typename LabImType::Pointer doRefine(typename LabImType::Pointer mask,
   typedef typename itk::Image<float, RawImType::ImageDimension> FloatImType;
   typedef typename FloatImType::Pointer PFloatImType;
 
-  typename RawImType::PixelType median;
-
-
   float radius = 5.0;
   // strategy this time is to find dark areas in an eroded version of
   // the input. We are also going to use the eroded input to produce

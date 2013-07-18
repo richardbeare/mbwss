@@ -34,6 +34,11 @@ ccmake ../mbwss/SuperBuild
 
 make
 
+An executable named scalperWSMacaque will be generated in 
+
+MBWSS-build/bin/scalperWSMacaque
+
+
 The steps above will download and install ITK 4.4. If you already
 have it installed, do this instead:
 

@@ -695,6 +695,7 @@ void doWatershed(const CmdLineType &CmdLineObj)
     writeImDbg<RawImType>(raworig, "biascor");
     }
   LabImPointer newmarker = mkMarker<RawImType, LabImType>(raworig);
+  writeImDbg<LabImType>(newmarker, "mark1");
   if (CmdLineObj.biascorrect)
     {
     // bias correction sets some parts to 0 (maybe). Include these as

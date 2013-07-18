@@ -74,3 +74,11 @@ The call I've been using for the scans I've tested so far is:
 
 scalperWSMacaque -i inputfile.nii.gz -o /tmp/output --refine --biascorrect --preopening 1 --smoothGradSigma 1.0
 
+I've found a couple of common sources of error. One is strong inhomogeneity 
+near image edges and the other is some of the optic nerves get partially
+segmented. The latter problem can probably be reduced by increasing
+the size of the smoothing, and it doesn't look very serious to me anyway.
+The internal bias field corrector is very basic. I've changed it recently
+to match the one I'm using for human scans. If there are
+problems with new scans then perhaps we need to switch back to the original version.
+

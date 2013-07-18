@@ -139,14 +139,14 @@ typename ImType::Pointer crappyBiasCorrectionB(typename ImType::Pointer raw, flo
     {
     rad[r]=radius/spacing[r];
     }
-  //rad[2] /= 4.0;
+  rad[2] /= 2.0;
   smooth1->SetInput(raw);
   smooth1->SetRadius(rad);
 
   // now create a mask of locally bright parts for bias correction
   itk::Instance<itk::DivideImageFilter<FloatImType, FloatImType, FloatImType> > HalfMean;
   HalfMean->SetInput(smooth1->GetOutput());
-  HalfMean->SetConstant(2);
+  HalfMean->SetConstant(4);
 
   typedef itk::BinaryFunctorImageFilter<ImType, FloatImType, MaskImType,
     itk::Functor::GreaterEqual<typename ImType::PixelType,

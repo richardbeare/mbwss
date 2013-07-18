@@ -11,21 +11,38 @@ ITK.
 Early versions of repository are for the Oxford guys to try out the
 macaque brain extraction tool.
 
-Building
+Building - the easy way
 --------
 
 Prerequisites : cmake 2.8.7, git
 
 git clone https://github.com/richardbeare/mbwss.git
+
 cd mbwss
+
 git submodule init
+
 git submodule update
 
+cd ..
+
 mkdir BuildMBWSS
+
 cd BuildMBWSS
 
 ccmake ../mbwss/SuperBuild
+
 make
+
+The steps above will download and install ITK 4.4. If you already
+have it installed, do this instead:
+
+ccmake ../mbwss/
+
+# set the location of ITK4.4
+
+make
+
 
 Notes on the macaque brain extractor:
 -------------------------------------

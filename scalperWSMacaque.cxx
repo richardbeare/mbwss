@@ -83,6 +83,7 @@ public:
   bool refine;
   bool debug;
   bool biascorrect;
+  int threads;
 } CmdLineType;
 
 
@@ -158,6 +159,9 @@ void ParseCmdLine(int argc, char* argv[],
     ValueArg<int> preopeningArg("", "preopening", "radius of opening before doing anything else - useful if eyes get included", false, 0, "int");
     cmd.add(preopeningArg);
 
+    ValueArg<int> threadArg("", "threads", "How many threads to use. Default is max cores", false, -1, "int");
+    cmd.add(threadArg);
+
    // Parse the args.
     cmd.parse( argc, argv );
 
@@ -172,7 +176,7 @@ void ParseCmdLine(int argc, char* argv[],
     CmdLineObj.debug = debugArg.getValue();
     CmdLineObj.biascorrect = biasArg.getValue();
     CmdLineObj.PreOpen = preopeningArg.getValue();
-
+    CmdLineObj.threads = threadArg.getValue();
     }
   catch (ArgException &e)  // catch any exceptions
     {
@@ -792,6 +796,11 @@ int main(int argc, char * argv[])
   int dim1 = 0;
   CmdLineType CmdLineObj;
   ParseCmdLine(argc, argv, CmdLineObj);
+
+  if (CmdLineObj.threads > 0)
+    {
+    itk::MultiThreader::SetGlobalMaximumNumberOfThreads(CmdLineObj.threads);
+    }
 
   wssdebug = CmdLineObj.debug;
   wssprefix = CmdLineObj.OutputImPrefix;

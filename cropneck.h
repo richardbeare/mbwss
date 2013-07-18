@@ -177,11 +177,11 @@ void cropNeck2(typename RawImType::Pointer raw, float distance, float slice, int
   fillRegion<MaskImType>(mask, blank, 0);
   writeImDbg<MaskImType>(mask, "topmask");
   labellerB->SetInput(mask);
-  LabelMapPointerTypeB labmap = labellerB->GetOutput();
-  labmap->Update();
-  labmap->DisconnectPipeline();
-  LabelObjectTypeB * labelObject = labmap->GetLabelObject(1);
-  typename MaskImType::PointType cent = labelObject->GetCentroid();
+  LabelMapPointerTypeB labmapB = labellerB->GetOutput();
+  labmapB->Update();
+  labmapB->DisconnectPipeline();
+  LabelObjectTypeB * labelObjectB = labmapB->GetLabelObject(1);
+  typename MaskImType::PointType cent = labelObjectB->GetCentroid();
   typename MaskImType::IndexType ind;
   mask->TransformPhysicalPointToIndex(cent, ind);
   x=ind[0];

@@ -39,7 +39,7 @@ have it installed, do this instead:
 
 ccmake ../mbwss/
 
-# set the location of ITK4.4
+Set the location of ITK4.4
 
 make
 

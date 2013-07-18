@@ -70,3 +70,7 @@ Usage:
 
 scalperWSMacaque --help
 
+The call I've been using for the scans I've tested so far is:
+
+scalperWSMacaque -i inputfile.nii.gz -o /tmp/output --refine --biascorrect --preopening 1 --smoothGradSigma 1.0
+

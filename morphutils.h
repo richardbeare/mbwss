@@ -411,7 +411,7 @@ typename TImage::Pointer doWhiteTopHatMaskedMM(const typename TImage::Pointer in
 
 //  writeIm<TImage>(maxcomb->GetOutput(), "/tmp/b1.nii.gz");
 
-  PRImage ero = doErodeMM<TImage>(maxcomb->GetOutput(), xrad);
+  PRImage ero = doErodeMM<TImage>(maxcomb->GetOutput(), xrad, yrad, zrad);
   // set the background to low
   // itk::Instance<itk::BinaryThresholdImageFilter<MImage, TImage> > SmallBG;
   // SmallBG->SetInput(mask);
@@ -424,7 +424,7 @@ typename TImage::Pointer doWhiteTopHatMaskedMM(const typename TImage::Pointer in
   // mincomb->SetInput(SmallBG->GetOutput());
   // mincomb->SetInput2(ero);
 
-  PRImage dil = doDilateMM<TImage>(ero, xrad);
+  PRImage dil = doDilateMM<TImage>(ero, xrad, yrad, zrad);
 
 
   typedef typename itk::SubtractImageFilter<TImage, TImage, TImage> SubType;

@@ -411,7 +411,7 @@ typename TImage::Pointer doWhiteTopHatMaskedMM(const typename TImage::Pointer in
 
 //  writeIm<TImage>(maxcomb->GetOutput(), "/tmp/b1.nii.gz");
 
-  PRImage ero = doErodeMM<TImage>(maxcomb->GetOutput(), xrad, yrad, zrad);
+  PRImage ero = doErodeMM<TImage>(maxcomb->GetOutput(), xrad);
   // set the background to low
   // itk::Instance<itk::BinaryThresholdImageFilter<MImage, TImage> > SmallBG;
   // SmallBG->SetInput(mask);
@@ -424,7 +424,7 @@ typename TImage::Pointer doWhiteTopHatMaskedMM(const typename TImage::Pointer in
   // mincomb->SetInput(SmallBG->GetOutput());
   // mincomb->SetInput2(ero);
 
-  PRImage dil = doDilateMM<TImage>(ero, xrad, yrad, zrad);
+  PRImage dil = doDilateMM<TImage>(ero, xrad);
 
 
   typedef typename itk::SubtractImageFilter<TImage, TImage, TImage> SubType;
@@ -572,6 +572,47 @@ typename TImage::Pointer doBlackTopHatMM(const typename TImage::Pointer input, f
 //   AddToStack(sub);
 //   return(sub->GetOutput());
 }
+
+template <class TImage>
+typename TImage::Pointer doGradientMasked(const typename TImage::Pointer input, 
+					  float xrad,
+					  float yrad=-1, float zrad=-1)
+{
+  typedef typename itk::Image<unsigned char, TImage::ImageDimension> MImage;
+
+  // assumes that mask is defined by zero values in input
+  // also assume mask has already been applied to input
+  typename TImage::Pointer dilated = doDilate<TImage>(input, xrad, yrad, zrad);
+  
+  itk::Instance<itk::BinaryThresholdImageFilter<TImage, TImage> > MkMask;
+  MkMask->SetInput(input);
+  MkMask->SetLowerThreshold(0);
+  MkMask->SetUpperThreshold(0);
+  MkMask->SetInsideValue(itk::NumericTraits<typename TImage::PixelType>::max());
+  MkMask->SetOutsideValue(0);
+  
+  itk::Instance<itk::MaximumImageFilter <TImage, TImage, TImage> > MaxFilt;
+  MaxFilt->SetInput(MkMask->GetOutput());
+  MaxFilt->SetInput2(input);
+
+  typename TImage::Pointer eroded = doErode<TImage>(MaxFilt->GetOutput(), xrad, yrad, zrad);
+
+  typedef typename itk::SubtractImageFilter<TImage, TImage, TImage> SubType;
+  typename SubType::Pointer sub = SubType::New();
+  sub->SetInput(dilated);
+  sub->SetInput2(eroded);
+
+  itk::Instance <itk::MaskImageFilter<TImage, TImage> > MaskGrad;
+  MaskGrad->SetInput(sub->GetOutput());
+  MaskGrad->SetInput2(input);
+
+  typename TImage::Pointer result = MaskGrad->GetOutput();
+  result->Update();
+  result->DisconnectPipeline();
+  return(result);
+
+}
+
 
 template <class TImage, class MImage>
 typename TImage::Pointer doBlackTopHatMaskedMM(const typename TImage::Pointer input, 

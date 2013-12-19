@@ -111,7 +111,7 @@ typename ImType::PixelType robustBGEst(typename ImType::Pointer im)
 }
 
 template <class ImType>
-typename ImType::Pointer crappyBiasCorrectionB(typename ImType::Pointer raw, float radius = 20.0, float thresh=0.05)
+typename ImType::Pointer crappyBiasCorrectionB(typename ImType::Pointer raw, float radius = 20.0, float gamma=0.8, float thresh=0.05)
 {
   // need to do something about edges, otherwise the brightness ramps
   // up too much at the edge because the background is underestimated.
@@ -132,6 +132,7 @@ typename ImType::Pointer crappyBiasCorrectionB(typename ImType::Pointer raw, flo
 
   // first compute a robust bg threshold
   typename ImType::PixelType bgthresh = robustBGEst<ImType>(raw);
+  std::cout << "Estimated bgthresh " << bgthresh << std::endl;
   typename SmoothRawType::Pointer smooth1 = SmoothRawType::New();
   typename SmoothRawType::RadiusType rad;
   typename ImType::SpacingType spacing = raw->GetSpacing();
@@ -170,7 +171,7 @@ typename ImType::Pointer crappyBiasCorrectionB(typename ImType::Pointer raw, flo
   typename MaskImType::Pointer biasmask = Combine->GetOutput();
   biasmask->Update();
   biasmask->DisconnectPipeline();
-  // Now use this to mask the input, and recomput the smoothing
+  // Now use this to mask the input, and recompute the smoothing
   itk::Instance< itk::MaskImageFilter <ImType, MaskImType, ImType> > MaskRaw;
   MaskRaw->SetInput(raw);
   MaskRaw->SetInput2(biasmask);
@@ -185,10 +186,13 @@ typename ImType::Pointer crappyBiasCorrectionB(typename ImType::Pointer raw, flo
   Reweight->SetInput(smooth1->GetOutput());
   Reweight->SetInput2(masksmooth->GetOutput());
 
+  itk::Instance< itk::MaskImageFilter <FloatImType, MaskImType, FloatImType> > MaskReweight;
+  MaskReweight->SetInput(Reweight->GetOutput());
+  MaskReweight->SetInput2(biasmask);
   // Scale the bias field before dividing through
   // Figure out max for scaling
   itk::Instance<itk::StatisticsImageFilter<FloatImType> > FieldStats;
-  FieldStats->SetInput(Reweight->GetOutput());
+  FieldStats->SetInput(MaskReweight->GetOutput());
   FieldStats->Update();
 
   typename FloatImType::PixelType Fmax = FieldStats->GetMaximum();
@@ -197,20 +201,29 @@ typename ImType::Pointer crappyBiasCorrectionB(typename ImType::Pointer raw, flo
   ScaleField->SetInput(Reweight->GetOutput());
   ScaleField->SetConstant(Fmax);
 
-  // Gamma correction - this makes things more stable when
-  // inhomogeneity is very strong.
-  itk::Instance< itk::PowImageFilter<FloatImType> > ScaleFieldGamma;
-  ScaleFieldGamma->SetInput(ScaleField->GetOutput());
-  ScaleFieldGamma->SetConstant2(0.6);
-
   itk::Instance<itk::DivideImageFilter<ImType, FloatImType, ImType> > Correct;
 
   Correct->SetInput(raw);
-  Correct->SetInput2(ScaleFieldGamma->GetOutput());
+  itk::Instance< itk::PowImageFilter<FloatImType> > ScaleFieldGamma;
+  ScaleFieldGamma->SetInput(ScaleField->GetOutput());
+  ScaleFieldGamma->SetConstant2(gamma);
 
-  // threshold the scale field and apply as a mask
   itk::Instance< itk::BinaryThresholdImageFilter <FloatImType, MaskImType> > FieldThresh;
-  FieldThresh->SetInput(ScaleField->GetOutput());
+  // Gamma correction - this makes things more stable when
+  // inhomogeneity is very strong.
+  if (gamma != 1.0)
+    {
+    Correct->SetInput2(ScaleFieldGamma->GetOutput());
+    FieldThresh->SetInput(ScaleFieldGamma->GetOutput());
+    writeImDbg<FloatImType>(ScaleFieldGamma->GetOutput(), "biasfield");
+    }
+  else
+    {
+    Correct->SetInput2(ScaleField->GetOutput());
+    FieldThresh->SetInput(ScaleField->GetOutput());
+    writeImDbg<FloatImType>(ScaleField->GetOutput(), "biasfield");
+    }
+  // threshold the scale field and apply as a mask
   FieldThresh->SetUpperThreshold(thresh);
   FieldThresh->SetInsideValue(0);
   FieldThresh->SetOutsideValue(1);
@@ -220,7 +233,6 @@ typename ImType::Pointer crappyBiasCorrectionB(typename ImType::Pointer raw, flo
   MaskFinal->SetInput2(FieldThresh->GetOutput());
 
   writeImDbg<MaskImType>(Combine->GetOutput(), "ge");
-  writeImDbg<FloatImType>(ScaleField->GetOutput(), "biasfield");
   typename ImType::Pointer res =MaskFinal->GetOutput();
   res->Update();
   res->DisconnectPipeline();

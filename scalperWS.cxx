@@ -406,7 +406,7 @@ typename LabImType::Pointer mkMarker(typename RawImType::Pointer t1, int top, in
     {
     // Get the ith region
     LabelObjectType* labelObject = labmap->GetNthLabelObject(i);
-    if(labelObject->GetLabel() != boxlab)
+    if((LabImType::PixelType)labelObject->GetLabel() != boxlab)
       {
       labelsToRemove.push_back(labelObject->GetLabel());
       }
@@ -733,10 +733,10 @@ typename LabImType::Pointer adjustMarker(typename LabImType::Pointer marker,
   {
     typedef itk::NeighborhoodAlgorithm::ImageBoundaryFacesCalculator<LabImType> FaceCalculatorType;
     FaceCalculatorType faceCalculator;
-    typename MaskImType::SizeType radius;
-    radius.Fill(1);
+    typename MaskImType::SizeType mradius;
+    mradius.Fill(1);
     typename FaceCalculatorType::FaceListType faceList;
-    faceList = faceCalculator(result, result->GetLargestPossibleRegion(), radius);
+    faceList = faceCalculator(result, result->GetLargestPossibleRegion(), mradius);
     typename FaceCalculatorType::FaceListType::iterator fit;
     fit = faceList.begin();
     ++fit;

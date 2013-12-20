@@ -11,11 +11,22 @@ switch (MarkerComponentType)
 #include "watershed_switch.h"
 #undef WSMARKTYPE
       break;
+    case (itk::ImageIOBase::USHORT):
+#define WSMARKTYPE unsigned short
+#include "watershed_switch.h"
+#undef WSMARKTYPE
+      break;
     case (itk::ImageIOBase::INT):
 #define WSMARKTYPE int
 #include "watershed_switch.h"
 #undef WSMARKTYPE
       break;
+    case (itk::ImageIOBase::FLOAT):
+#define WSMARKTYPE float
+#include "watershed_switch.h"
+#undef WSMARKTYPE
+      break;
+
     default:
       std::cerr << "Unsupported marker pixel type" << std::endl;
       return(EXIT_FAILURE);

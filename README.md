@@ -85,8 +85,8 @@ typical usage:
 scalperWS -i inputfile.nii.gz -o outputprefix --refine  --biascorrect
 
 
-
-
+Scans need to be in approximately MNI orientation - i.e RL PA IS (or
+LR PA IS). Angle isn't particulary critical.
 
 
 Notes on the macaque brain extractor:

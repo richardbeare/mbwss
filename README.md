@@ -48,6 +48,25 @@ Set the location of ITK4.4
 
 make
 
+Citations
+---------
+
+If you find these tools useful in your research, please cite:
+
+"Brain extraction using the watershed transform from markers., R. Beare, J. Chen, C.L. Adamson, T. Silk, D.K. Thompson, J.Y.M. Yang, V.A. Anderson, M.L. Seal and A.G. Wood. Frontiers in Neuroinformatics, 7(32), December 2013."
+
+
+@Article{MBWSSBeare,
+  author =       {Beare, R. and Chen, J. and Adamson, C.L. and  Silk, T. and Thompson, D.K. and Yang, J.Y.M. and Anderson, V.A. and Seal, M.L. and Wood, A.G.},
+  title =        {Brain extraction using the watershed transform from markers.},
+  journal =      {Frontiers in Neuroinformatics},
+  year =         2013,
+  volume =       7,
+  number =       32,
+  month =        {December},
+  doi = {doi:10.3389/fninf.2013.00032}
+}
+
 
 Notes on the macaque brain extractor:
 -------------------------------------
@@ -61,7 +80,7 @@ and fast and normalise the intensity sufficiently for edges to be
 detectable. It is built around largish mean filters, the size of which
 is the only exposed parameter. I've had good results so far setting
 the size to 10mm, which makes the very faint areas visible again. If
-results are very bad, this is probably a producting place to start.
+results are very bad, this is probably a productive place to start.
 
 Scans need to be in approximately MNI orientation - i.e RL PA IS (or
 LR PA IS). Angle isn't particulary critical.

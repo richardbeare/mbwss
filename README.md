@@ -8,8 +8,6 @@ T1 MRI scans - one for humans and one for macaques. The methods are
 being published in Frontiers in Neuroinformatics, special issue on
 ITK.
 
-Early versions of repository are for the Oxford guys to try out the
-macaque brain extraction tool.
 
 Building - the easy way
 --------
@@ -75,6 +73,20 @@ If you find these tools useful in your research, please cite:
   doi = {doi:10.3389/fninf.2013.00032}
 
 }
+
+
+Notes on the human brain extractor:
+-----------------------------------
+
+Name: scalperWS
+
+typical usage:
+
+scalperWS -i inputfile.nii.gz -o outputprefix --refine  --biascorrect
+
+
+
+
 
 
 Notes on the macaque brain extractor:

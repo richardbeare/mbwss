@@ -57,14 +57,23 @@ If you find these tools useful in your research, please cite:
 
 
 @Article{MBWSSBeare,
+
   author =       {Beare, R. and Chen, J. and Adamson, C.L. and  Silk, T. and Thompson, D.K. and Yang, J.Y.M. and Anderson, V.A. and Seal, M.L. and Wood, A.G.},
+
   title =        {Brain extraction using the watershed transform from markers.},
+
   journal =      {Frontiers in Neuroinformatics},
+
   year =         2013,
+
   volume =       7,
+
   number =       32,
+
   month =        {December},
+
   doi = {doi:10.3389/fninf.2013.00032}
+
 }
 
 

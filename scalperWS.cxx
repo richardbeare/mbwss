@@ -406,7 +406,7 @@ typename LabImType::Pointer mkMarker(typename RawImType::Pointer t1, int top, in
     {
     // Get the ith region
     LabelObjectType* labelObject = labmap->GetNthLabelObject(i);
-    if((typename LabImType::PixelType)labelObject->GetLabel() != boxlab)
+    if(labelObject->GetLabel() != (unsigned)boxlab)
       {
       labelsToRemove.push_back(labelObject->GetLabel());
       }

@@ -89,7 +89,7 @@ ENDFOREACH(CurrentExe)
 # ADD_TEST(Testname ExecutableToRun arg1 arg2 arg3)
 
 ADD_TEST(scA ${TEST_COMMAND}
-   scalperWSTrials -i ${INPUT_IMAGE} --biascorrect --refine --smoothGradSigma 1 --roughOpenRadius 5 --roughCloseRadius 6.5 -o scA
+   scalperWS -i ${INPUT_IMAGE} --biascorrect --refine --smoothGradSigma 1 --roughOpenRadius 5 --roughCloseRadius 6.5 -o scA
    --compare scA_brainmaskrough.nii.gz ${CMAKE_CURRENT_SOURCE_DIR}/images/scA_brainmaskrough.nii.gz
    --compare scA_brainmask.nii.gz ${CMAKE_CURRENT_SOURCE_DIR}/images/scA_brainmask.nii.gz
    --compare scA_refinedmasksmoothed2.nii.gz ${CMAKE_CURRENT_SOURCE_DIR}/images/scA_refinedmasksmoothed2.nii.gz

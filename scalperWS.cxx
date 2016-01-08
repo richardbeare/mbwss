@@ -345,7 +345,6 @@ typename LabImType::Pointer mkMarker(typename RawImType::Pointer t1, int top, in
   // now compute some statistics of the marker. We will keep create a
   // mask of similar brightness and keep the component connected to
   // the marker.
-
   std::vector<float> qvals;
   qvals.push_back(0.5);
   qvals.push_back(0.95);
@@ -357,6 +356,8 @@ typename LabImType::Pointer mkMarker(typename RawImType::Pointer t1, int top, in
 
   FGSelect->SetInsideValue(1);
   FGSelect->SetOutsideValue(0);
+  writeImDbg<LabImType>(FGSelect->GetOutput(), "fgmarker");
+
   // apply an opening to the mask
   itk::Instance< itk::BinaryOpenParaImageFilter <LabImType, LabImType> > ParaOpen;
   ParaOpen->SetInput(FGSelect->GetOutput());
@@ -396,10 +397,11 @@ typename LabImType::Pointer mkMarker(typename RawImType::Pointer t1, int top, in
   LabelMapPointerType labmap = Labeller->GetOutput();
   labmap->Update();
   labmap->DisconnectPipeline();
+  writeImDbg<LabImType>(comb, "fgcomb");
 
   // create a new label map with only the relevant object in it.
   // figure out the label including the box
-  typename LabImType::PixelType boxlab = labmap->GetPixel(bmcent);
+  typename LabelMapType::PixelType boxlab = labmap->GetPixel(bmcent);
   std::vector<unsigned long> labelsToRemove;
 
   for(unsigned int i = 0; i < labmap->GetNumberOfLabelObjects(); i++)

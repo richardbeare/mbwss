@@ -14,6 +14,7 @@ Building - the easy way
 
 Prerequisites : cmake 2.8.7, git
 
+```bash
 git clone https://github.com/richardbeare/mbwss.git
 
 cd mbwss
@@ -21,7 +22,9 @@ cd mbwss
 git submodule init
 
 git submodule update
+```
 
+```bash
 cd ..
 
 mkdir BuildMBWSS
@@ -31,17 +34,19 @@ cd BuildMBWSS
 ccmake ../mbwss/SuperBuild
 
 make
+```
 
 An executable named scalperWSMacaque will be generated in 
 
+```bash
 MBWSS-build/bin/scalperWSMacaque
-
+```
 
 The steps above will download and install ITK 4.4. If you already
 have it installed, do this instead:
-
+```bash
 ccmake ../mbwss/
-
+```
 Set the location of ITK4.4
 
 make

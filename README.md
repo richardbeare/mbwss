@@ -113,7 +113,8 @@ scalperWSMacaque --help
 
 The call I've been using for the scans I've tested so far is:
 ``` bash
-scalperWSMacaque -i inputfile.nii.gz -o /tmp/output --refine --biascorrect --preopening 1 --smoothGradSigma 1.0
+scalperWSMacaque -i inputfile.nii.gz -o /tmp/output --refine --biascorrect \
+--preopening 1 --smoothGradSigma 1.0
 ```
 
 I've found a couple of common sources of error. One is strong inhomogeneity 

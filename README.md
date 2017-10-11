@@ -81,9 +81,9 @@ Notes on the human brain extractor:
 Name: scalperWS
 
 typical usage:
-
+```bash
 scalperWS -i inputfile.nii.gz -o outputprefix --refine  --biascorrect
-
+```
 
 Scans need to be in approximately MNI orientation - i.e RL PA IS (or
 LR PA IS). Angle isn't particulary critical.
@@ -107,12 +107,14 @@ Scans need to be in approximately MNI orientation - i.e RL PA IS (or
 LR PA IS). Angle isn't particulary critical.
 
 Usage:
-
+```bash
 scalperWSMacaque --help
+```
 
 The call I've been using for the scans I've tested so far is:
-
+``` bash
 scalperWSMacaque -i inputfile.nii.gz -o /tmp/output --refine --biascorrect --preopening 1 --smoothGradSigma 1.0
+```
 
 I've found a couple of common sources of error. One is strong inhomogeneity 
 near image edges and the other is some of the optic nerves get partially

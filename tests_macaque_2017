@@ -1,12 +1,15 @@
 TARG=/tmp/macaque/
+mkdir -p ${TARG}
 
-for i in /data/garethb/macaques/forRichard/*denoised.nii ; do
+SRC=/data/garethb/macaques/forRichard/
+SRC=${HOME}/cv41_scratch/MCRI/forRichard
+for i in ${SRC}/*denoised.nii ; do
     b=$(basename $i)
     b=${b/.nii/}
-    ./Build.Linux/scalperWSMacaque --debug -i $i -o ${TARG}/${b}  --refine --smoothGradSigma 1.0 --threads 4
+    ./Build/MBWSS-build/bin/scalperWSMacaque --debug -i $i -o ${TARG}/${b}  --refine --smoothGradSigma 1.0 --threads 4 --markerdilate 1 --preopening 1
 done
 
-for i in /data/garethb/macaques/forRichard/*denoised.nii ; do
+for i in ${SRC}/*denoised.nii ; do
     b=$(basename $i)
     b=${b/.nii/}
     #fslview $i ${TARG}/${b}_zmask

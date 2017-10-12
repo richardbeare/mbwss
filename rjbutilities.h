@@ -197,7 +197,6 @@ template  <class RawIm>
 typename RawIm::Pointer resampleIm(typename RawIm::Pointer input, typename RawIm::SpacingType NewSpacing, int interp=1)
 {
   const int dim = RawIm::ImageDimension;
-  typedef typename RawIm::PixelType PixelType;
 
   typedef typename itk::ResampleImageFilter<RawIm, RawIm >  ResampleFilterType;
   typedef typename itk::IdentityTransform< double, dim >  TransformType;
@@ -274,7 +273,6 @@ template  <class RawIm>
 typename RawIm::Pointer resampleIm(typename RawIm::Pointer input, typename RawIm::Pointer exampleIm, int interp=1)
 {
   const int dim = RawIm::ImageDimension;
-  typedef typename RawIm::PixelType PixelType;
 
   typedef typename itk::ResampleImageFilter<RawIm, RawIm >  ResampleFilterType;
   typedef typename itk::IdentityTransform< double, dim >  TransformType;

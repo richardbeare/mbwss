@@ -110,7 +110,7 @@ float macBMarkRad = 5;
 // parameters for filtering the first stage rough segmentation
 float rough_open_radius = 3.0;
 float rough_close_radius = 3.5;
-
+float markerDilate = 3;
 
 float bgquant= 0.01;
 
@@ -149,6 +149,8 @@ void ParseCmdLine(int argc, char* argv[],
 
     ValueArg<float> closeArg("c","closeradius","size of the closing in (mm)", false, 15,"float");
     cmd.add(closeArg);
+    ValueArg<float> markerdilArg("","markerdilate","size of the marker dilation in (mm)- relates to skull thickness", false, 3,"float");
+    cmd.add(markerdilArg);
 
     std::vector<float> DefSig;
     DefSig.push_back(1.0);
@@ -181,6 +183,7 @@ void ParseCmdLine(int argc, char* argv[],
     CmdLineObj.biascorrect = biasArg.getValue();
     CmdLineObj.PreOpen = preopeningArg.getValue();
     CmdLineObj.threads = threadArg.getValue();
+    markerDilate = markerdilArg.getValue();
     }
   catch (ArgException &e)  // catch any exceptions
     {
@@ -238,6 +241,7 @@ typename MaskImType::Pointer mkMaskBorder(typename MaskImType::Pointer mask, flo
     }
 }
 
+
 template <class RawImType, class LabImType>
 typename LabImType::Pointer bigDarkAreas(typename RawImType::Pointer t1, int y)
 {
@@ -253,6 +257,7 @@ typename LabImType::Pointer bigDarkAreas(typename RawImType::Pointer t1, int y)
   typename LabImType::Pointer zmaskinv;
   itk::Instance< itk::BinaryThresholdImageFilter <RawImType, LabImType> > Thresh;
   Thresh->SetInput(closed);
+  typename LabImType::Pointer tmp;
 
   if (OtsuBG)
     {
@@ -260,16 +265,11 @@ typename LabImType::Pointer bigDarkAreas(typename RawImType::Pointer t1, int y)
 
     Otsu->SetInput(closed);
 
-    Otsu->SetOutsideValue(1);
-    Otsu->SetInsideValue(0);
-    zmask = Otsu->GetOutput();
-    zmask->Update();
-    zmask->DisconnectPipeline();
-    double tt = Otsu->GetThreshold();
-    itk::Instance< itk::BinaryThresholdImageFilter <RawImType, LabImType> > Thresh;
-    Thresh->SetInsideValue(2);
-    Thresh->SetOutsideValue(0);
-    Thresh->SetUpperThreshold(tt);
+    Otsu->SetOutsideValue(0);
+    Otsu->SetInsideValue(2);
+    tmp = Otsu->GetOutput();
+    tmp->Update();
+    tmp->DisconnectPipeline();
     }
   else
     {
@@ -290,33 +290,31 @@ typename LabImType::Pointer bigDarkAreas(typename RawImType::Pointer t1, int y)
     zmask->DisconnectPipeline();
     Thresh->SetInsideValue(2);
     Thresh->SetOutsideValue(0);
+    zmaskinv = Thresh->GetOutput();
+    zmaskinv->Update();
+    zmaskinv->DisconnectPipeline();
 
+    // now get back to the eyes
+    quants[0]=0.25;
+    writeImDbg<LabImType>(zmask, "zmask");
+    
+    qvals = computeImQuantile<RawImType, LabImType>(closed, zmask, quants);
+    std::cout << "eye thresh " << qvals[0] << std::endl;
+    Thresh->SetUpperThreshold(qvals[0]);
+    Thresh->SetInsideValue(2);
+    Thresh->SetOutsideValue(0);
+    // merge with zmask
+    itk::Instance< itk::MaximumImageFilter <LabImType, LabImType, LabImType> > Comb;
+    Comb->SetInput(zmaskinv);
+    Comb->SetInput2(Thresh->GetOutput());
+    writeImDbg<LabImType>(Comb->GetOutput(), "combmask");
+    tmp = Comb->GetOutput();
+    tmp->Update();
+    tmp->DisconnectPipeline();
     }
-  zmaskinv = Thresh->GetOutput();
-  zmaskinv->Update();
-  zmaskinv->DisconnectPipeline();
 
-  // now get back to the eyes
-  std::vector<float> quants;
-  quants.push_back(0.25);
-  writeImDbg<LabImType>(zmask, "zmask");
 
-  std::vector<typename RawImType::PixelType> qvals = computeImQuantile<RawImType, LabImType>(closed, zmask, quants);
-  std::cout << "eye thresh " << qvals[0] << std::endl;
-  Thresh->SetUpperThreshold(qvals[0]);
-  Thresh->SetInsideValue(2);
-  Thresh->SetOutsideValue(0);
-  // merge with zmask
-  itk::Instance< itk::MaximumImageFilter <LabImType, LabImType, LabImType> > Comb;
-  Comb->SetInput(zmaskinv);
-  Comb->SetInput2(Thresh->GetOutput());
-
-  writeImDbg<LabImType>(Comb->GetOutput(), "combmask");
-
-  typename LabImType::Pointer tmp = Comb->GetOutput();
   {
-  tmp->Update();
-  tmp->DisconnectPipeline();
   // delete the  back, then dilate a bit
   typename LabImType::RegionType blank = tmp->GetLargestPossibleRegion();
   typename LabImType::RegionType::SizeType s  = blank.GetSize();
@@ -344,7 +342,7 @@ typename LabImType::Pointer bigDarkAreas(typename RawImType::Pointer t1, int y)
   AreaOpening->SetForegroundValue(2);
 
 
-  typename LabImType::Pointer result = doDilateMM<LabImType>(AreaOpening->GetOutput(), 3, 3, 0);
+  typename LabImType::Pointer result = doDilateMM<LabImType>(AreaOpening->GetOutput(), markerDilate, markerDilate, 0);
   result->Update();
   result->DisconnectPipeline();
 
@@ -541,9 +539,6 @@ typename LabImType::Pointer doRefine(typename LabImType::Pointer mask,
   // is much thicker and there don't seem to be problems with dural layers
   typedef typename RawImType::Pointer PRawImType;
   typedef typename LabImType::Pointer PLabImType;
-
-  typedef typename itk::Image<float, RawImType::ImageDimension> FloatImType;
-  typedef typename FloatImType::Pointer PFloatImType;
 
   float radius = 5.0;
   // strategy this time is to find dark areas in an eroded version of

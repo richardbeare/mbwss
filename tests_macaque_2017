@@ -1,0 +1,14 @@
+TARG=/tmp/macaque/
+
+for i in /data/garethb/macaques/forRichard/*denoised.nii ; do
+    b=$(basename $i)
+    b=${b/.nii/}
+    ./Build.Linux/scalperWSMacaque --debug -i $i -o ${TARG}/${b}  --refine --smoothGradSigma 1.0 --threads 4
+done
+
+for i in /data/garethb/macaques/forRichard/*denoised.nii ; do
+    b=$(basename $i)
+    b=${b/.nii/}
+    #fslview $i ${TARG}/${b}_zmask
+    fslview $i ${TARG}/${b}_eyeclosed ${TARG}/${b}_zmask
+done

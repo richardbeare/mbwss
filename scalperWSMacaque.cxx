@@ -112,6 +112,10 @@ float rough_open_radius = 3.0;
 float rough_close_radius = 3.5;
 
 
+float bgquant= 0.01;
+
+bool OtsuBG = true;
+
 void ParseCmdLine(int argc, char* argv[],
                   CmdLineType &CmdLineObj
                   )
@@ -241,37 +245,64 @@ typename LabImType::Pointer bigDarkAreas(typename RawImType::Pointer t1, int y)
   // dark areas may be found too.
   // big tophat filter
   typename RawImType::Pointer closed = doClosingMM<RawImType>(t1, 4);
+
   //typename RawImType::Pointer bth = doBlackTopHatMM<RawImType>(closed, 7);
   //writeImDbg<RawImType>(bth, "eyebth");
   writeImDbg<RawImType>(closed, "eyeclosed");
-
-  // threshold -- need to be careful because we can get interactions
-  // with bias correction phase
-
-  std::vector<float> quants;
-  quants.push_back(0.01);
-
-  std::vector<typename RawImType::PixelType> qvals = computeImQuantile<RawImType>(closed, quants);
+  typename LabImType::Pointer zmask;
+  typename LabImType::Pointer zmaskinv;
   itk::Instance< itk::BinaryThresholdImageFilter <RawImType, LabImType> > Thresh;
-
   Thresh->SetInput(closed);
-  Thresh->SetUpperThreshold(qvals[0]);
-  Thresh->SetInsideValue(0);
-  Thresh->SetOutsideValue(1);
 
-  typename LabImType::Pointer zmask = Thresh->GetOutput();
-  zmask->Update();
-  zmask->DisconnectPipeline();
-  typename LabImType::Pointer zmaskinv = Thresh->GetOutput();
-  Thresh->SetInsideValue(2);
-  Thresh->SetOutsideValue(0);
+  if (OtsuBG)
+    {
+    itk::Instance< itk::OtsuThresholdImageFilter <RawImType, LabImType, LabImType> >Otsu;
+
+    Otsu->SetInput(closed);
+
+    Otsu->SetOutsideValue(1);
+    Otsu->SetInsideValue(0);
+    zmask = Otsu->GetOutput();
+    zmask->Update();
+    zmask->DisconnectPipeline();
+    double tt = Otsu->GetThreshold();
+    itk::Instance< itk::BinaryThresholdImageFilter <RawImType, LabImType> > Thresh;
+    Thresh->SetInsideValue(2);
+    Thresh->SetOutsideValue(0);
+    Thresh->SetUpperThreshold(tt);
+    }
+  else
+    {
+    // threshold -- need to be careful because we can get interactions
+    // with bias correction phase
+    std::vector<float> quants;
+    quants.push_back(bgquant);
+
+    std::vector<typename RawImType::PixelType> qvals = computeImQuantile<RawImType>(closed, quants);
+    std::cout << "bg thresh " << qvals[0] << std::endl;
+
+    Thresh->SetUpperThreshold(qvals[0]);
+    Thresh->SetInsideValue(0);
+    Thresh->SetOutsideValue(1);
+
+    zmask = Thresh->GetOutput();
+    zmask->Update();
+    zmask->DisconnectPipeline();
+    Thresh->SetInsideValue(2);
+    Thresh->SetOutsideValue(0);
+
+    }
+  zmaskinv = Thresh->GetOutput();
   zmaskinv->Update();
   zmaskinv->DisconnectPipeline();
 
   // now get back to the eyes
-  quants[0]=0.25;
+  std::vector<float> quants;
+  quants.push_back(0.25);
+  writeImDbg<LabImType>(zmask, "zmask");
 
-  qvals = computeImQuantile<RawImType, LabImType>(closed, zmask, quants);
+  std::vector<typename RawImType::PixelType> qvals = computeImQuantile<RawImType, LabImType>(closed, zmask, quants);
+  std::cout << "eye thresh " << qvals[0] << std::endl;
   Thresh->SetUpperThreshold(qvals[0]);
   Thresh->SetInsideValue(2);
   Thresh->SetOutsideValue(0);
@@ -367,7 +398,7 @@ typename LabImType::Pointer mkMarker(typename RawImType::Pointer t1)
   writeImDbg<RawImType>(t1, "cropraw");
 
   typename LabImType::Pointer Eyes = bigDarkAreas<RawImType, LabImType>(t1, y);
-
+  
   // construct a marker image
   typename LabImType::Pointer marker = LabImType::New();
   marker->SetRegions(t1->GetLargestPossibleRegion());
@@ -669,18 +700,12 @@ typename LabImType::Pointer doRefine(typename LabImType::Pointer mask,
 template <class PixType, class LabPixType, int dim>
 void doWatershed(const CmdLineType &CmdLineObj)
 {
-  // the basic algorithm is simple.
-  // 1) Rough alignment of brain with the standard template (done
-  // outside)
-  // 2) Transform a marker image to the subject space
-  //    Make some adjustments to the markers based on thresholding,
-  // because the registration is never precise enough.
-
-  // 3) Apply marker based watershed, using inverse of original image
-  // as the control
-  // 4) Apply a large closing to smooth the mask
-  // 5) (Optional) Use the result as an external bound and do a second watershed
-
+  // 1 Optional bias correction
+  // 2 Create marker (blank base, locate eyes, leave border, box in
+  // centre
+  // 3 Watershed (boundary definitely containing brain)
+  // 4 refine.
+  
   typedef typename itk::Image<PixType, dim> RawImType;
   typedef typename itk::Image<LabPixType, dim> LabImType;
   typedef typename RawImType::Pointer RawImPointer;

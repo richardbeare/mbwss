@@ -44,9 +44,9 @@ MBWSS-build/bin/scalperWSMacaque
 
 The steps above will download and install ITK 4.4. If you already
 have it installed, do this instead:
-```bash
+
 ccmake ../mbwss/
-```
+
 Set the location of ITK4.4
 
 make

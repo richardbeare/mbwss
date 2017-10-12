@@ -80,7 +80,7 @@ std::vector<typename TImage::PixelType> computeImQuantile(typename TImage::Point
 
   HistMaker->SetAutoMinimumMaximum(true);
   typename HistMakerType::HistogramSizeType hsize(in->GetNumberOfComponentsPerPixel());
-  hsize.Fill(256);
+  hsize.Fill(1024);
   HistMaker->SetHistogramSize(hsize);
   HistMaker->Update();
 

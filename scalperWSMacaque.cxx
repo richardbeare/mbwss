@@ -110,12 +110,13 @@ float macBMarkRad = 5;
 // parameters for filtering the first stage rough segmentation
 float rough_open_radius = 3.0;
 float rough_close_radius = 3.5;
-float markerDilate = 3;
+float markerDilate = 3.0;
+float eyecloseradius = 4.0;
 
 float bgquant= 0.01;
 
-bool OtsuBG = true;
-
+bool OtsuBG = false;
+bool edgeMarkerOnly = true;
 void ParseCmdLine(int argc, char* argv[],
                   CmdLineType &CmdLineObj
                   )
@@ -147,8 +148,18 @@ void ParseCmdLine(int argc, char* argv[],
     SwitchArg debugArg("d", "debug", "save debug images", false);
     cmd.add( debugArg );
 
+    SwitchArg otsuArg("", "otsubackground", "Use otsu thresholding to identify bg (not so good if there are huge bias fields)", false);
+    cmd.add( otsuArg );
+
+    SwitchArg edgemarkArg("", "notedgemarkeronly", "Use only the image edge as a marker. Essential when the bias field is really strong. Turn off for babies with thin skull", true);
+    cmd.add( edgemarkArg );
+
     ValueArg<float> closeArg("c","closeradius","size of the closing in (mm)", false, 15,"float");
     cmd.add(closeArg);
+    
+    ValueArg<float> eyecloseArg("","eyecloseradius","size of the closing in (mm) used to highlight eye", false, 4,"float");
+    cmd.add(eyecloseArg);
+    
     ValueArg<float> markerdilArg("","markerdilate","size of the marker dilation in (mm)- relates to skull thickness", false, 3,"float");
     cmd.add(markerdilArg);
 
@@ -162,7 +173,7 @@ void ParseCmdLine(int argc, char* argv[],
     SwitchArg biasArg("", "biascorrect", "Preform rough bias correction", false);
     cmd.add( biasArg );
 
-    ValueArg<int> preopeningArg("", "preopening", "radius of opening before doing anything else - useful if eyes get included", false, 0, "int");
+    ValueArg<int> preopeningArg("", "preopening", "radius of opening before doing anything else (voxels) - useful if eyes get included", false, 0, "int");
     cmd.add(preopeningArg);
 
     ValueArg<int> threadArg("", "threads", "How many threads to use. Default is max cores", false, -1, "int");
@@ -184,6 +195,9 @@ void ParseCmdLine(int argc, char* argv[],
     CmdLineObj.PreOpen = preopeningArg.getValue();
     CmdLineObj.threads = threadArg.getValue();
     markerDilate = markerdilArg.getValue();
+    eyecloseradius = eyecloseArg.getValue();
+    OtsuBG = otsuArg.getValue();
+    edgeMarkerOnly = edgemarkArg.getValue();
     }
   catch (ArgException &e)  // catch any exceptions
     {
@@ -248,7 +262,7 @@ typename LabImType::Pointer bigDarkAreas(typename RawImType::Pointer t1, int y)
   // try to find the eyeballs to create new background markers. Other
   // dark areas may be found too.
   // big tophat filter
-  typename RawImType::Pointer closed = doClosingMM<RawImType>(t1, 4);
+  typename RawImType::Pointer closed = doClosingMM<RawImType>(t1, eyecloseradius);
 
   //typename RawImType::Pointer bth = doBlackTopHatMM<RawImType>(closed, 7);
   //writeImDbg<RawImType>(bth, "eyebth");
@@ -321,7 +335,9 @@ typename LabImType::Pointer bigDarkAreas(typename RawImType::Pointer t1, int y)
   typename LabImType::SpacingType sp = tmp->GetSpacing();
   //int bot = top - macRadSI/sp[2];
   //if (bot > 0)
+  if (edgeMarkerOnly)
     {
+
     //s[2] = bot;
     s[1] = y + 0.5*macRadAP/sp[1];
     blank.SetSize(s);
@@ -340,9 +356,11 @@ typename LabImType::Pointer bigDarkAreas(typename RawImType::Pointer t1, int y)
   AreaOpening->SetLambda(100);
   AreaOpening->SetAttribute("PhysicalSize");
   AreaOpening->SetForegroundValue(2);
-
-
-  typename LabImType::Pointer result = doDilateMM<LabImType>(AreaOpening->GetOutput(), markerDilate, markerDilate, 0);
+  typename LabImType::Pointer result = AreaOpening->GetOutput();
+  if (markerDilate > 0)
+    {
+    result = doDilateMM<LabImType>(AreaOpening->GetOutput(), markerDilate, markerDilate, 0);
+    }
   result->Update();
   result->DisconnectPipeline();
 

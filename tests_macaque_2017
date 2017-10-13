@@ -3,15 +3,28 @@ mkdir -p ${TARG}
 
 SRC=/data/garethb/macaques/forRichard/
 SRC=${HOME}/cv41_scratch/MCRI/forRichard
+
+SC=./Build/MBWSS-build/bin/scalperWSMacaque
+SC=./Build/scalperWSMacaque
 for i in ${SRC}/*denoised.nii ; do
     b=$(basename $i)
     b=${b/.nii/}
-    ./Build/MBWSS-build/bin/scalperWSMacaque --debug -i $i -o ${TARG}/${b}  --refine --smoothGradSigma 1.0 --threads 4 --markerdilate 1 --preopening 1
+    ${SC} --debug -i $i -o ${TARG}/${b}  --refine --smoothGradSigma 1.0 --threads 4 --markerdilate 0.5 --preopening 3 --otsubackground
 done
 
-for i in ${SRC}/*denoised.nii ; do
+for i in ${SRC}/036*T1.nii ; do
     b=$(basename $i)
     b=${b/.nii/}
     #fslview $i ${TARG}/${b}_zmask
-    fslview $i ${TARG}/${b}_eyeclosed ${TARG}/${b}_zmask
+    fslview $i ${TARG}/${b}_brainmaskrough ${TARG}/${b}_marker
+    fslview $i ${TARG}/${b}_preopened
+    fslview $i ${TARG}/${b}_refinedmask1
+
+done
+
+## Pretty good for all except the 2 week old - try a smaller opening
+for i in ${SRC}/036_*T1.nii ; do
+    b=$(basename $i)
+    b=${b/.nii/}
+    ${SC} --debug -i $i -o ${TARG}/${b}  --refine --smoothGradSigma 0.5 --threads 4 --markerdilate 0 --preopening 3 --otsubackground --eyecloseradius 2 --notedgemarkeronly
 done
